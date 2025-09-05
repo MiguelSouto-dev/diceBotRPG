@@ -25,7 +25,14 @@ client.on('messageCreate', (message) => {
     let numDice = parseInt(match[1]) || 1;
     const max = parseInt(match[2]);
     const operation = match[3];
-    const value = parseInt(operation.slice(1));
+
+    // Se existir operação (+3, -2, etc.), extrai valor
+    let op = null;
+    let value = 0;
+    if (operation) {
+      op = operation[0];
+      value = parseInt(operation.slice(1));
+    }
     
     if (numDice < 1) numDice = 1;
     if (max < 2) return message.reply('O número do dado deve ser >= 2');
@@ -35,9 +42,8 @@ client.on('messageCreate', (message) => {
     const rolls = [];
     for (let i = 0; i < numDice; i++) {
       let roll = getQuantumRandom(max);
-      if (operation) {
-        const op = operation[0];
-        
+
+      if (op) {
         switch (op) {
           case '+': roll += value; break;
           case '-': roll -= value; break;
@@ -45,12 +51,16 @@ client.on('messageCreate', (message) => {
           case '/': roll = Math.floor(roll / value); break;
         }
       }
-      roll = Math.max(1, roll);
+
+      roll = Math.max(1, roll); // nunca menor que 1
       rolls.push(roll);
     }
 
     const total = rolls.reduce((a, b) => a + b, 0);
-    message.reply(`🎲 Rolagem: D${max}${op,value}[${rolls.join(', ')}] (Total: ${total})`);
+
+  
+    let opText = op ? ` ${op}${value}` : '';
+    message.reply(`🎲 Rolagem: ${numDice}d${max}${opText} → [${rolls.join(', ')}] (Total: ${total})`);
   }
 });
 
